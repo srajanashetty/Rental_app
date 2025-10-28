@@ -110,7 +110,7 @@ const server = app.listen(PORT, () => {
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: ["http://localhost:3000", "https://tenantix-fr.onrender.com"],
     credentials: true,
   },
 });
