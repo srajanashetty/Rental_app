@@ -100,83 +100,75 @@ const login = async (req, res) => {
  * @returns {string} token
  */
 const register = async (req, res) => {
-  const { role, email } = req.body;
+  try {
+    console.log("=== REGISTER REQUEST ===");
+    console.log("req.body:", req.body);   // Logs all fields sent from frontend
+    console.log("req.file:", req.file);   // Logs uploaded file info, if any
 
-  if (role === "owner") {
-    //generate token
-    const verificationToken = jwt.sign(
-      { email: email },
-      process.env.EMAIL_VERIFICATION_KEY,
-      {
-        expiresIn: "1d",
-      }
-    );
+    const { role, email } = req.body;
 
-    // add token to req.body
-    req.body.accountVerificationToken = verificationToken;
+    if (!role || !email) {
+      return res.status(400).json({ msg: "Role and email are required" });
+    }
 
-    // create owner
-    const owner = await OwnerUser.create(req.body);
+    if (role === "owner") {
+      const verificationToken = jwt.sign(
+        { email: email },
+        process.env.EMAIL_VERIFICATION_KEY,
+        { expiresIn: "1d" }
+      );
 
-    // remove password and token from response object
-    owner.password = undefined;
-    owner.accountVerificationToken = undefined;
+      req.body.accountVerificationToken = verificationToken;
 
-    // send email with token link
-    const to = email;
-    const from = process.env.EMAIL_USER;
-    const subject = "Email Verification Link";
-    const body = `
-    <p> Hello ${owner.firstName} ${owner.lastName},</p>
-    <p>Please click on the link below to verify your account on Property Plus</p>
-    <a href="${process.env.CLIENT_URL}/#/verify-account/owner/${verificationToken}">Verify Account</a>
-    <p>Regards,</p>
-    <p>Team Tenantix</p>
-    `;
-    await sendEmail(to, from, subject, body);
+      const owner = await OwnerUser.create(req.body);
 
-    res
-      .status(201)
-      .json({ success: true, userType: "owner", email: owner.email });
-  } else if (role === "tenant") {
-    //generate token
-    const verificationToken = jwt.sign(
-      { email: email },
-      process.env.EMAIL_VERIFICATION_KEY,
-      {
-        expiresIn: "1d",
-      }
-    );
+      owner.password = undefined;
+      owner.accountVerificationToken = undefined;
 
-    // add token to req.body
-    req.body.accountVerificationToken = verificationToken;
+      const to = email;
+      const from = process.env.EMAIL_USER;
+      const subject = "Email Verification Link";
+      const body = `<p>Hello ${owner.firstName} ${owner.lastName},</p>
+                    <p>Click to verify:</p>
+                    <a href="${process.env.CLIENT_URL}/#/verify-account/owner/${verificationToken}">Verify</a>`;
+      await sendEmail(to, from, subject, body);
 
-    const tenant = await TenantUser.create(req.body); // create tenant
+      res.status(201).json({ success: true, userType: "owner", email: owner.email });
 
-    // remove password and token from response object
-    tenant.password = undefined;
-    tenant.accountVerificationToken = undefined;
+    } else if (role === "tenant") {
+      const verificationToken = jwt.sign(
+        { email: email },
+        process.env.EMAIL_VERIFICATION_KEY,
+        { expiresIn: "1d" }
+      );
 
-    // send email with token link
-    const to = email;
-    const from = process.env.EMAIL_USER;
-    const subject = "Email Verification Link";
-    const body = `
-    <p> Hello ${tenant.firstName} ${tenant.lastName},</p>
-    <p>Please click on the link below to verify your account on Property Plus</p>
-    <a href="${process.env.CLIENT_URL}/#/verify-account/tenant/${verificationToken}">Verify Account</a>
-    <p>Regards,</p>
-    <p>Team Tenantix</p>
-    `;
-    await sendEmail(to, from, subject, body);
+      req.body.accountVerificationToken = verificationToken;
 
-    res
-      .status(201)
-      .json({ success: true, userType: "tenant", email: tenant.email });
-  } else {
-    throw new BadRequestError("Invalid Role");
+      const tenant = await TenantUser.create(req.body);
+
+      tenant.password = undefined;
+      tenant.accountVerificationToken = undefined;
+
+      const to = email;
+      const from = process.env.EMAIL_USER;
+      const subject = "Email Verification Link";
+      const body = `<p>Hello ${tenant.firstName} ${tenant.lastName},</p>
+                    <p>Click to verify:</p>
+                    <a href="${process.env.CLIENT_URL}/#/verify-account/tenant/${verificationToken}">Verify</a>`;
+      await sendEmail(to, from, subject, body);
+
+      res.status(201).json({ success: true, userType: "tenant", email: tenant.email });
+
+    } else {
+      return res.status(400).json({ msg: "Invalid Role" });
+    }
+
+  } catch (error) {
+    console.error("REGISTER ERROR:", error); // This will log the exact reason for 500
+    res.status(500).json({ msg: error.message });
   }
 };
+
 
 /**
  * @description Verify user account
