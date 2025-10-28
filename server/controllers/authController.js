@@ -131,7 +131,7 @@ const register = async (req, res) => {
     <p>Please click on the link below to verify your account on Property Plus</p>
     <a href="${process.env.CLIENT_URL}/#/verify-account/owner/${verificationToken}">Verify Account</a>
     <p>Regards,</p>
-    <p>Team Property Plus</p>
+    <p>Team Tenantix</p>
     `;
     await sendEmail(to, from, subject, body);
 
@@ -166,7 +166,7 @@ const register = async (req, res) => {
     <p>Please click on the link below to verify your account on Property Plus</p>
     <a href="${process.env.CLIENT_URL}/#/verify-account/tenant/${verificationToken}">Verify Account</a>
     <p>Regards,</p>
-    <p>Team Property Plus</p>
+    <p>Team Tenantix</p>
     `;
     await sendEmail(to, from, subject, body);
 
@@ -298,7 +298,7 @@ const resendVerificationEmail = async (req, res) => {
     <p>Please click on the link below to verify your account on Property Plus</p>
     <a href="${process.env.CLIENT_URL}/#/verify-account/owner/${verificationToken}">Verify Account</a>
     <p>Regards,</p>
-    <p>Team Property Plus</p>
+    <p>Team Tenantix</p>
     `;
 
     // send email with token link
@@ -336,7 +336,7 @@ const resendVerificationEmail = async (req, res) => {
     <p>Please click on the link below to verify your account on Property Plus</p>
     <a href="${process.env.CLIENT_URL}/#/verify-account/tenant/${verificationToken}">Verify Account</a>
     <p>Regards,</p>
-    <p>Team Property Plus</p>
+    <p>Team Tenantix</p>
     `;
     await sendEmail(to, from, subject, body);
 
