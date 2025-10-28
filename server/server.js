@@ -58,7 +58,7 @@ app.set("trust proxy", 1); //trust first proxy
 
 app.use(
   cors({
-    origin: ["http://localhost:3000","http://localhost:3001"],
+    origin: ["https://tenantix-frontend.onrender.com"],
     credentials: true,
   })
 ); //to allow cross origin requests
