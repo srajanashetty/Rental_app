@@ -57,14 +57,34 @@ app.set("trust proxy", 1);
 app.use(cookieParser());
 
 // ✅ Proper CORS setup
+const allowedOrigins = [
+  "http://127.0.0.1:5173",                  // local dev
+  "https://tenantix-frontt.onrender.com",   // deployed frontend
+];
+
 app.use(
   cors({
-    origin: "https://tenantix-frontt.onrender.com", // frontend URL
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow Postman/server requests
+      if (allowedOrigins.indexOf(origin) === -1) {
+        return callback(new Error("CORS not allowed from this origin"), false);
+      }
+      return callback(null, true);
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+//app.use(
+  //cors({
+    //origin: "https://tenantix-frontt.onrender.com", // frontend URL
+ //   credentials: true,
+   // methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+ //   allowedHeaders: ["Content-Type", "Authorization"],
+  //})
+//);
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -110,7 +130,7 @@ const server = app.listen(PORT, () => {
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://tenantix-frontt.onrender.com"],
+    origin: ["https://tenantix-frontt.onrender.com"],
     credentials: true,
   },
 });
