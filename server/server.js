@@ -59,7 +59,7 @@ app.use(cookieParser());
 // ✅ Proper CORS setup
 const allowedOrigins = [
   "http://127.0.0.1:5173",                  // local dev
-  "https://tenantix-frontt.onrender.com",   // deployed frontend
+  "https://tenantix-finalfrontend.onrender.com",   // deployed frontend
 ];
 
 app.use(
@@ -130,7 +130,7 @@ const server = app.listen(PORT, () => {
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: ["https://tenantix-frontt.onrender.com"],
+    origin: ["https://tenantix-finalfrontend.onrender.com"],
     credentials: true,
   },
 });
