@@ -60,11 +60,14 @@ app.use(cookieParser());
 app.use(
   cors({
     origin:  ["https://tenantix-finalfrontend.onrender.com"], // correct frontend URL
-    credentials: true,
+    //credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
+
+app.use(express.json());
 
 //app.options("*", cors({
  // origin: "https://tenantix-finalfrontend.onrender.com",
@@ -83,14 +86,6 @@ app.use(function (req, res, next) {
   next();
 });
 
-//app.use(
-  //cors({
-    //origin: "https://tenantix-frontt.onrender.com", // frontend URL
- //   credentials: true,
-   // methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
- //   allowedHeaders: ["Content-Type", "Authorization"],
-  //})
-//);
 
 // Routes
 app.use("/api/auth", authRoutes);
