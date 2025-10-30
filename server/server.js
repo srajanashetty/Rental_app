@@ -59,17 +59,18 @@ app.use(cookieParser());
 // ✅ Proper CORS setup
 app.use(
   cors({
-    origin:  ["http://localhost:3000","http://localhost:3001"], // correct frontend URL
+    origin:  ["https://tenantix-finalfrontend.onrender.com"], // correct frontend URL
     credentials: true,
     //methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     //allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.options("*", cors({
-  origin: "https://tenantix-finalfrontend.onrender.com",
-  credentials: true,
-}));
+//app.options("*", cors({
+ // origin: "https://tenantix-finalfrontend.onrender.com",
+ // credentials: true,
+//}));
+
 app.use(cookieParser()); //to parse cookies
 
 app.use(function (req, res, next) {
