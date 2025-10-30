@@ -59,10 +59,10 @@ app.use(cookieParser());
 // ✅ Proper CORS setup
 app.use(
   cors({
-    origin: "https://tenantix-finalfrontend.onrender.com", // correct frontend URL
+    origin:  ["http://localhost:3000","http://localhost:3001"], // correct frontend URL
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    //methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    //allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -70,7 +70,17 @@ app.options("*", cors({
   origin: "https://tenantix-finalfrontend.onrender.com",
   credentials: true,
 }));
+app.use(cookieParser()); //to parse cookies
 
+app.use(function (req, res, next) {
+  res.header("Content-Type", "application/json;charset=UTF-8");
+  res.header("Access-Control-Allow-Credentials", true);
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 
 //app.use(
   //cors({
@@ -89,7 +99,8 @@ app.use("/api/tenant/real-estate", authorizeTenantUser, tenantPropertyRoutes);
 app.use("/api/owner", authorizeOwnerUser, ownerUserRoutes);
 app.use("/api/tenant", authorizeTenantUser, tenantUserRoutes);
 
-app.use("/api/sendEmail", emailSenderRoutes);
+app.use("/api/sendEmail", emailSenderRoutes); //send mail
+
 app.use("/api/contract", contractRoutes);
 
 app.use("/api/rentDetail", authorizeOwnerUser, ownerRentDetailRoutes);
@@ -125,7 +136,7 @@ const server = app.listen(PORT, () => {
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: ["https://tenantix-finalfrontend.onrender.com"],
+    origin: ["http://localhost:3000", "http://localhost:3001"],
     credentials: true,
   },
 });

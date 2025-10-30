@@ -7,7 +7,7 @@ export const injectStore = (_store) => {
 };
 
 const axiosFetch = axios.create({
-  baseURL: import.meta.env.VITE_APP_API_URL,
+  baseURL: import.meta.env.VITE_APP_API_URL || "/api",
   withCredentials: true,
 });
 
