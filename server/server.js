@@ -61,8 +61,8 @@ app.use(
   cors({
     origin:  ["https://tenantix-finalfrontend.onrender.com"], // correct frontend URL
     credentials: true,
-    //methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    //allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -137,7 +137,7 @@ const server = app.listen(PORT, () => {
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: ["https://tenantix-finalfrontend.onrender.com"],
     credentials: true,
   },
 });
