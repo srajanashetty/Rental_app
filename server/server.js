@@ -59,7 +59,7 @@ app.use(cookieParser());
 // ✅ Proper CORS setup
 app.use(
   cors({
-    origin:  ["https://tenantix-finalfrontend.onrender.com"], // correct frontend URL
+    origin:  ["https://rental-app-managementt.onrender.com/"], // correct frontend URL
     //credentials: true,
     methods: ["GET", "POST","HEAD", "PUT","PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -70,7 +70,7 @@ app.use(
 app.use(express.json());
 
 //app.options("*", cors({
- // origin: "https://tenantix-finalfrontend.onrender.com",
+ // origin: "https://rental-app-managementt.onrender.com/",
  // credentials: true,
 //}));
 
@@ -132,7 +132,7 @@ const server = app.listen(PORT, () => {
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: ["https://tenantix-finalfrontend.onrender.com"],
+    origin: ["https://rental-app-managementt.onrender.com/"],
     credentials: true,
   },
 });
