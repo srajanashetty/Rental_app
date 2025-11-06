@@ -52,7 +52,7 @@ app.use(cookieParser());
 
 // ✅ CORS setup: MUST BE BEFORE ROUTES
 const allowedOrigins = [
-  "https://tenantix-finalfrontend.onrender.com",
+  "https://rental-appp-management.onrender.com",
   "http://localhost:3000",
 ];
 
