@@ -82,7 +82,7 @@ app.get("/test-backend", (req, res) => {
 app.get("/api/test-email", async (req, res) => {
   try {
     await sendEmail(
-      "varshashreegowda21@gmail.com",
+      "srajanashetty2611@gmail.com",
       "Tenantix Email Test ✅",
       "<h2>Hello! SendGrid test email from Tenantix server.</h2>"
     );
