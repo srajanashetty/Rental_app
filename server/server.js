@@ -51,27 +51,22 @@ app.set("trust proxy", 1);
 app.use(cookieParser());
 
 // ✅ CORS setup: MUST BE BEFORE ROUTES
+
 const allowedOrigins = [
-  "https://rental-appp-management.onrender.com",
-  "http://localhost:3000",
+  "http://localhost:5173",
+  "https://rental-appp-management.onrender.com"
 ];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS policy: Origin not allowed"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: function (origin, cb) {
+    if (!origin) return cb(null, true);   // allow tools/postman
+    return cb(null, allowedOrigins.includes(origin));
+  },
+  credentials: true,
+  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"]
+}));
 
-// Handle preflight OPTIONS globally
 app.options("*", cors());
 
 // Test route
