@@ -1,4 +1,5 @@
 import express from "express";
+import { sendEmail } from "./utils/emailSender.js";
 import dotenv from "dotenv";
 import "express-async-errors";
 import cors from "cors";
@@ -12,7 +13,6 @@ import mongoSanitize from "express-mongo-sanitize";
 
 // Database and routes
 import connectDB from "./database/connectDB.js";
-
 import authRoutes from "./routes/authRoutes.js";
 import ownerPropertyRoutes from "./routes/ownerPropertyRoutes.js";
 import tenantPropertyRoutes from "./routes/tenantPropertyRoutes.js";
@@ -29,26 +29,20 @@ import errorHandlerMiddleware from "./middleware/error-handler.js";
 import { authorizeOwnerUser, authorizeTenantUser } from "./middleware/userAuthorization.js";
 
 import { Server } from "socket.io";
-
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 
-import Property from "./models/Property.js";
-
 dotenv.config();
-
 const app = express();
 
 // Logging requests in development
-if (process.env.NODE_ENV !== "production") {
-  app.use(morgan("dev"));
-}
+if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
 
 // Static folder for frontend build files
 const __dirname = dirname(fileURLToPath(import.meta.url));
 app.use(express.static(path.resolve(__dirname, "../client/dist")));
 
-// Middleware
+// Core security and parsing middleware
 app.use(express.json());
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(xss());
@@ -56,55 +50,71 @@ app.use(mongoSanitize());
 app.set("trust proxy", 1);
 app.use(cookieParser());
 
-// ✅ Proper CORS setup
+// ✅ CORS setup: MUST BE BEFORE ROUTES
+const allowedOrigins = [
+  "https://tenantix-finalfrontend.onrender.com",
+  "http://localhost:3000",
+];
+
 app.use(
   cors({
-    origin:  ["https://rental-app-managementt.onrender.com/"], // correct frontend URL
-    //credentials: true,
-    methods: ["GET", "POST","HEAD", "PUT","PATCH", "DELETE", "OPTIONS"],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS policy: Origin not allowed"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
 
-app.use(express.json());
+// Handle preflight OPTIONS globally
+app.options("*", cors());
 
-//app.options("*", cors({
- // origin: "https://rental-app-managementt.onrender.com/",
- // credentials: true,
-//}));
+// Test route
+app.get("/test-backend", (req, res) => {
+  res.status(200).json({ message: "Backend is working!" });
+});
 
-app.use(cookieParser()); //to parse cookies
+app.get("/api/test-email", async (req, res) => {
+  try {
+    await sendEmail(
+      "varshashreegowda21@gmail.com",
+      "Tenantix Email Test ✅",
+      "<h2>Hello! SendGrid test email from Tenantix server.</h2>"
+    );
 
-app.use(function (req, res, next) {
-  res.header("Content-Type", "application/json;charset=UTF-8");
-  res.header("Access-Control-Allow-Credentials", true);
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
+    res.send("✅ Email sent successfully!");
+  } catch (err) {
+    console.error("SendGrid error:", err);
+    res.status(500).send("❌ Email failed: " + err.message);
+  }
 });
 
 
-// Routes
+
+// ======================= ROUTES ============================
+
+// Public routes
 app.use("/api/auth", authRoutes);
-app.use("/api/owner/real-estate", authorizeOwnerUser, ownerPropertyRoutes);
-app.use("/api/tenant/real-estate", authorizeTenantUser, tenantPropertyRoutes);
-
-app.use("/api/owner", authorizeOwnerUser, ownerUserRoutes);
-app.use("/api/tenant", authorizeTenantUser, tenantUserRoutes);
-
-app.use("/api/sendEmail", emailSenderRoutes); //send mail
-
+app.use("/api/sendEmail", emailSenderRoutes);
 app.use("/api/contract", contractRoutes);
-
-app.use("/api/rentDetail", authorizeOwnerUser, ownerRentDetailRoutes);
-app.use("/api/rentDetailTenant", authorizeTenantUser, tenantRentDetailRoutes);
-
 app.use("/api/chat", chatRoutes);
 
-// Serve frontend files in production
+// Protected Owner routes
+app.use("/api/owner/real-estate", authorizeOwnerUser, ownerPropertyRoutes);
+app.use("/api/owner", authorizeOwnerUser, ownerUserRoutes);
+app.use("/api/rentDetail", authorizeOwnerUser, ownerRentDetailRoutes);
+
+// Protected Tenant routes
+app.use("/api/tenant/real-estate", authorizeTenantUser, tenantPropertyRoutes);
+app.use("/api/tenant", authorizeTenantUser, tenantUserRoutes);
+app.use("/api/rentDetailTenant", authorizeTenantUser, tenantRentDetailRoutes);
+
+// Serve frontend (React) build in production
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "../client/dist", "index.html"));
 });
@@ -113,43 +123,45 @@ app.get("*", (req, res) => {
 app.use(errorHandlerMiddleware);
 app.use(routeNotFoundMiddleware);
 
+// ======================= START SERVER ============================
 const PORT = process.env.PORT || 5000;
 
-// Start server and connect to DB
 const start = async () => {
   try {
     await connectDB(process.env.MONGO_URI);
+    console.log("✅ MongoDB Connected");
+
+    const server = app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+
+    // ======================= SOCKET.IO ============================
+    const io = new Server(server, {
+      cors: {
+        origin: allowedOrigins,
+        credentials: true,
+      },
+    });
+
+    global.onlineUsers = new Map();
+
+    io.on("connection", (socket) => {
+      global.chatSocket = socket;
+
+      socket.on("addUser", (userId) => {
+        onlineUsers.set(userId, socket.id);
+      });
+
+      socket.on("sendMsg", (data) => {
+        const sendUserSocketId = onlineUsers.get(data.to);
+        if (sendUserSocketId) {
+          socket.to(sendUserSocketId).emit("receiveMsg", data.message);
+        }
+      });
+    });
   } catch (error) {
-    console.log(error);
+    console.log("❌ Database connection error:", error);
   }
 };
+
 start();
-
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
-// Socket.io setup
-const io = new Server(server, {
-  cors: {
-    origin: ["https://rental-app-managementt.onrender.com/"],
-    credentials: true,
-  },
-});
-
-global.onlineUsers = new Map();
-
-io.on("connection", (socket) => {
-  global.chatSocket = socket;
-
-  socket.on("addUser", (userId) => {
-    onlineUsers.set(userId, socket.id);
-  });
-
-  socket.on("sendMsg", (data) => {
-    const sendUserSocketId = onlineUsers.get(data.to);
-    if (sendUserSocketId) {
-      socket.to(sendUserSocketId).emit("receiveMsg", data.message);
-    }
-  });
-});

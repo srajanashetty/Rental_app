@@ -1,29 +1,30 @@
-import nodemailer from "nodemailer";
-import dotenv from "dotenv"; //to use environment variables
+import sgMail from "@sendgrid/mail";
+import dotenv from "dotenv";
+
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure:false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// ✅ Initialize SendGrid with API Key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 /**
- * Send email using nodemailer transporter GMAIL
+ * Send email using SendGrid API
  */
-export const sendEmail = async (to, from, subject, body) => {
+export const sendEmail = async (to, subject, body) => {
   try {
-    await transporter.sendMail({
-      from,
-      to,
+    const msg = {
+      to: to, // ✅ dynamic receiver
+      from: process.env.SENDGRID_FROM, // ✅ verified sender only
       subject,
       html: body,
-    });
+    };
+
+    const response = await sgMail.send(msg);
+    console.log("✅ Email sent:", response[0].statusCode);
   } catch (error) {
-    console.log(error);
+    console.error(
+      "❌ SENDGRID ERROR FULL:",
+      JSON.stringify(error.response?.body, null, 2)
+    );
+    throw error;
   }
 };
