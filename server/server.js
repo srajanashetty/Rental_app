@@ -132,7 +132,7 @@ const start = async () => {
     console.log("✅ MongoDB Connected");
 
     const server = app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
 
     // ======================= SOCKET.IO ============================
@@ -160,7 +160,7 @@ const start = async () => {
       });
     });
   } catch (error) {
-    console.log("❌ Database connection error:", error);
+    console.log(" Database connection error:", error);
   }
 };
 
